@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import navdata from '../Layouts/LayoutMenuData';
 import config from '../config';
-import menuService from '../services/menuService';
+import { menuService } from '../services/menuService';
 
 interface MenuItem {
   id?: string;
