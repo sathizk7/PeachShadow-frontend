@@ -126,5 +126,3 @@ const UnifiedMenuData = () => {
 };
 
 export default UnifiedMenuData;
-
-export default UnifiedMenuData;

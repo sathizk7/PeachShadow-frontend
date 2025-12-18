@@ -37,7 +37,7 @@ class MenuService {
    */
   async getMenusForUser(userId: string): Promise<MenuItem[]> {
     try {
-      const response: MenuResponse = await api.get(`/v1/menus/user/${userId}`);
+      const response = await api.get(`/v1/menus/user/${userId}`);
       return response.data || [];
     } catch (error) {
       console.error('Error fetching user menus:', error);
@@ -50,7 +50,7 @@ class MenuService {
    */
   async getAllMenus(): Promise<MenuItem[]> {
     try {
-      const response: MenuResponse = await api.get('/v1/menus/hierarchy');
+      const response = await api.get('/v1/menus/hierarchy');
       return response.data || [];
     } catch (error) {
       console.error('Error fetching menu hierarchy:', error);
