@@ -4,14 +4,19 @@ import { Link } from "react-router-dom";
 import { Collapse } from 'reactstrap';
 // Import Data
 import navdata from "../LayoutMenuData";
+import UnifiedMenuData from "../UnifiedMenuData";
 //i18n
 import { withTranslation } from "react-i18next";
 import withRouter from "../../Components/Common/withRouter";
 import { useSelector } from "react-redux";
 import { createSelector } from 'reselect';
+import config from "../../config";
 
 const VerticalLayout = (props : any) => {
-    const navData = navdata().props.children;
+    // Use dynamic or static menu based on configuration
+    const { USE_DYNAMIC_MENU } = config.menu;
+    const navData = USE_DYNAMIC_MENU ? null : navdata().props.children;
+    
     const path = props.router.location.pathname;
 
     /*
@@ -148,8 +153,13 @@ const VerticalLayout = (props : any) => {
 
     return (
         <React.Fragment>
-            {/* menu Items */}
-            {(navData || []).map((item : any, key : number) => {
+            {/* Dynamic or Static Menu */}
+            {USE_DYNAMIC_MENU ? (
+                <UnifiedMenuData />
+            ) : (
+                <>
+                    {/* Static menu Items */}
+                    {(navData || []).map((item : any, key : number) => {
                 return (
                     <React.Fragment key={key}>
                         {/* Main Header */}
@@ -263,6 +273,8 @@ const VerticalLayout = (props : any) => {
                     </React.Fragment>
                 );
             })}
+                </>
+            )}
         </React.Fragment>
     );
 };
