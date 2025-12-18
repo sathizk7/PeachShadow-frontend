@@ -24,8 +24,19 @@ export const useMenuData = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isUsingDynamic, setIsUsingDynamic] = useState(false);
+  
+  // State tracking for menu expansion (similar to LayoutMenuData)
+  const [menuStates, setMenuStates] = useState<{[key: string]: boolean}>({});
 
   const { USE_DYNAMIC_MENU, FALLBACK_TO_STATIC } = config.menu;
+
+  // Function to toggle menu state
+  const toggleMenuState = (menuId: string) => {
+    setMenuStates(prev => ({
+      ...prev,
+      [menuId]: !prev[menuId]
+    }));
+  };
 
   // Load static menu data
   const loadStaticMenu = () => {
@@ -73,17 +84,29 @@ export const useMenuData = () => {
 
   // Transform API menu data to component-expected format
   const transformApiToMenuFormat = (apiData: any[]): MenuItem[] => {
-    return apiData.map((item: any) => ({
-      id: item._id,
-      label: item.label,
-      icon: item.icon,
-      link: item.link,
-      isHeader: item.is_header,
-      subItems: item.subItems ? transformApiToMenuFormat(item.subItems) : undefined,
-      badgeName: item.badge_name,
-      badgeColor: item.badge_color,
-      // Add any other required transformations
-    }));
+    return apiData.map((item: any) => {
+      const menuId = item._id || item.id;
+      const hasSubItems = item.subItems && item.subItems.length > 0;
+      
+      return {
+        id: menuId,
+        label: item.label,
+        icon: item.icon,
+        link: item.link || "/#",
+        isHeader: item.is_header,
+        subItems: hasSubItems ? transformApiToMenuFormat(item.subItems) : undefined,
+        badgeName: item.badge_name,
+        badgeColor: item.badge_color,
+        // Add click handler and state tracking for items with subItems
+        ...(hasSubItems && {
+          click: (e: any) => {
+            e.preventDefault();
+            toggleMenuState(menuId);
+          },
+          stateVariables: !!menuStates[menuId]
+        })
+      };
+    });
   };
 
   // Initialize menu data
@@ -94,6 +117,17 @@ export const useMenuData = () => {
       loadStaticMenu();
     }
   }, [USE_DYNAMIC_MENU]);
+
+  // Re-transform data when menu states change (for dynamic menus)
+  useEffect(() => {
+    if (isUsingDynamic && menuData.length > 0) {
+      // Re-run transformation to update stateVariables
+      menuService.getAllMenus().then(dynamicMenuData => {
+        const transformedData = transformApiToMenuFormat(dynamicMenuData);
+        setMenuData(transformedData);
+      }).catch(console.error);
+    }
+  }, [menuStates, isUsingDynamic]);
 
   // Refresh function for manual reload
   const refresh = () => {
