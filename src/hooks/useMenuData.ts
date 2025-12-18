@@ -121,13 +121,23 @@ export const useMenuData = () => {
   // Re-transform data when menu states change (for dynamic menus)
   useEffect(() => {
     if (isUsingDynamic && menuData.length > 0) {
-      // Re-run transformation to update stateVariables
-      menuService.getAllMenus().then(dynamicMenuData => {
-        const transformedData = transformApiToMenuFormat(dynamicMenuData);
-        setMenuData(transformedData);
-      }).catch(console.error);
+      // Instead of re-fetching from API, just update the existing data with new states
+      const updateMenuStates = (items: MenuItem[]): MenuItem[] => {
+        return items.map(item => {
+          if (item.subItems && item.subItems.length > 0) {
+            return {
+              ...item,
+              stateVariables: !!menuStates[item.id!],
+              subItems: updateMenuStates(item.subItems)
+            };
+          }
+          return item;
+        });
+      };
+      
+      setMenuData(prevData => updateMenuStates(prevData));
     }
-  }, [menuStates, isUsingDynamic]);
+  }, [menuStates]);
 
   // Refresh function for manual reload
   const refresh = () => {
