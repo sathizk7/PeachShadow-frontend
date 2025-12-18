@@ -84,7 +84,30 @@ export const useMenuData = () => {
 
   // Transform API menu data to component-expected format
   const transformApiToMenuFormat = (apiData: any[]): MenuItem[] => {
-    return apiData.map((item: any) => {
+    // First pass: Handle duplicate labels by merging header subItems with menu items
+    const processedData = [...apiData];
+    const labelGroups = processedData.reduce((acc: {[key: string]: any[]}, item) => {
+      if (!acc[item.label]) acc[item.label] = [];
+      acc[item.label].push(item);
+      return acc;
+    }, {});
+
+    // Merge items with same labels (header + menu item)
+    Object.keys(labelGroups).forEach(label => {
+      const items = labelGroups[label];
+      if (items.length > 1) {
+        const headerItem = items.find(item => item.is_header === true);
+        const menuItem = items.find(item => item.is_header === false && item.icon);
+        
+        if (headerItem && menuItem && headerItem.subItems?.length > 0 && menuItem.subItems?.length === 0) {
+          // Transfer subItems from header to menu item
+          menuItem.subItems = headerItem.subItems;
+          console.log(`Merged subItems from header to menu for: ${label}`);
+        }
+      }
+    });
+
+    return processedData.map((item: any) => {
       const menuId = item._id || item.id;
       const hasSubItems = item.subItems && item.subItems.length > 0;
       
