@@ -116,12 +116,21 @@ const TwoColumnLayout = (props : any) => {
 
     // Handle click on first column icons
     const handleFirstColumnClick = (item: any) => {
-        // Toggle logic: if the same item is clicked, close the second column
-        if (selectedMenuItem?.id === item.id) {
+        // If second column is currently closed (no selectedMenuItem), always open with clicked item
+        if (!selectedMenuItem) {
+            setSelectedMenuItem(item);
+            removeIconSidebarActive();
+            // Activate the clicked icon
+            const iconElement = document.querySelector(`[sub-items="${item.id}"]`);
+            if (iconElement) {
+                iconElement.classList.add("active");
+            }
+        } else if (selectedMenuItem.id === item.id) {
+            // Same item clicked when second column is open, close it
             setSelectedMenuItem(null);
             removeIconSidebarActive();
         } else {
-            // Different item clicked, show its sub-items
+            // Different item clicked, switch to that menu's sub-items
             setSelectedMenuItem(item);
             removeIconSidebarActive();
             // Activate the clicked icon
