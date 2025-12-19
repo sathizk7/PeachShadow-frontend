@@ -41,8 +41,90 @@ export const useMenuData = () => {
   // Load static menu data
   const loadStaticMenu = () => {
     try {
-      const staticMenuData = navdata().props.children;
-      setMenuData(staticMenuData || []);
+      // Create a static fallback menu structure without hooks
+      const staticFallbackMenu = [
+        {
+          id: "menu-header",
+          label: "Menu",
+          isHeader: true
+        },
+        {
+          id: "dashboard",
+          label: "Dashboards",
+          icon: "ri-dashboard-2-line",
+          link: "/#",
+          stateVariables: false,
+          click: (e: any) => {
+            e.preventDefault();
+            toggleMenuState("dashboard");
+          },
+          subItems: [
+            {
+              id: "analytics",
+              label: "Analytics",
+              link: "/dashboard-analytics"
+            },
+            {
+              id: "crm", 
+              label: "CRM",
+              link: "/dashboard-crm"
+            },
+            {
+              id: "ecommerce",
+              label: "Ecommerce",
+              link: "/dashboard"
+            }
+          ]
+        },
+        {
+          id: "apps",
+          label: "Apps",
+          icon: "ri-apps-2-line",
+          link: "/#",
+          stateVariables: false,
+          click: (e: any) => {
+            e.preventDefault();
+            toggleMenuState("apps");
+          },
+          subItems: [
+            {
+              id: "calendar",
+              label: "Calendar", 
+              link: "/apps-calendar"
+            },
+            {
+              id: "chat",
+              label: "Chat",
+              link: "/apps-chat"
+            }
+          ]
+        },
+        {
+          id: "pages",
+          label: "Pages",
+          icon: "ri-pages-line", 
+          link: "/#",
+          stateVariables: false,
+          click: (e: any) => {
+            e.preventDefault();
+            toggleMenuState("pages");
+          },
+          subItems: [
+            {
+              id: "profile",
+              label: "Profile",
+              link: "/pages-profile"
+            },
+            {
+              id: "team", 
+              label: "Team",
+              link: "/pages-team"
+            }
+          ]
+        }
+      ];
+
+      setMenuData(staticFallbackMenu);
       setIsUsingDynamic(false);
       setError(null);
     } catch (err) {
@@ -143,15 +225,20 @@ export const useMenuData = () => {
 
   // Re-transform data when menu states change (for dynamic menus)
   useEffect(() => {
-    if (isUsingDynamic && menuData.length > 0) {
-      // Instead of re-fetching from API, just update the existing data with new states
+    if (menuData.length > 0) {
+      // Update menu states for both dynamic and static menus
       const updateMenuStates = (items: MenuItem[]): MenuItem[] => {
         return items.map(item => {
           if (item.subItems && item.subItems.length > 0) {
             return {
               ...item,
               stateVariables: !!menuStates[item.id!],
-              subItems: updateMenuStates(item.subItems)
+              subItems: updateMenuStates(item.subItems),
+              // Ensure click handler exists for static menus
+              click: item.click || ((e: any) => {
+                e.preventDefault();
+                toggleMenuState(item.id!);
+              })
             };
           }
           return item;
