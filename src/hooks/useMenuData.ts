@@ -13,6 +13,8 @@ interface MenuItem {
   link?: string;
   isHeader?: boolean;
   subItems?: MenuItem[];
+  isChildItem?: boolean;
+  childItems?: MenuItem[];
   click?: (e: any) => void;
   stateVariables?: boolean;
   badgeName?: string;
@@ -339,8 +341,35 @@ export const useMenuData = () => {
           },
           subItems: [
             { id: "level1.1", label: "Level 1.1", link: "/#" },
-            { id: "level1.2", label: "Level 1.2", link: "/#" },
-            { id: "level1.3", label: "Level 1.3", link: "/#" }
+            {
+              id: "level1.2",
+              label: "Level 1.2", 
+              link: "/#",
+              isChildItem: true,
+              stateVariables: false,
+              click: (e: any) => {
+                e.preventDefault();
+                toggleMenuState("level1.2");
+              },
+              childItems: [
+                { id: "level2.1", label: "Level 2.1", link: "/#" },
+                {
+                  id: "level2.2",
+                  label: "Level 2.2",
+                  link: "/#",
+                  isChildItem: true,
+                  stateVariables: false,
+                  click: (e: any) => {
+                    e.preventDefault();
+                    toggleMenuState("level2.2");
+                  },
+                  childItems: [
+                    { id: "level3.1", label: "Level 3.1", link: "/#" },
+                    { id: "level3.2", label: "Level 3.2", link: "/#" }
+                  ]
+                }
+              ]
+            }
           ]
         }
       ];
@@ -410,29 +439,55 @@ export const useMenuData = () => {
       }
     });
 
-    return processedData.map((item: any) => {
-      const menuId = item._id || item.id;
-      const hasSubItems = item.subItems && item.subItems.length > 0;
-      
-      return {
-        id: menuId,
-        label: item.label,
-        icon: item.icon,
-        link: item.link || "/#",
-        isHeader: item.is_header,
-        subItems: hasSubItems ? transformApiToMenuFormat(item.subItems) : undefined,
-        badgeName: item.badge_name,
-        badgeColor: item.badge_color,
-        // Add click handler and state tracking for items with subItems
-        ...(hasSubItems && {
-          click: (e: any) => {
-            e.preventDefault();
-            toggleMenuState(menuId);
-          },
-          stateVariables: !!menuStates[menuId]
-        })
-      };
-    });
+    // Helper function to detect multi-level structure and transform accordingly
+    const transformMenuLevel = (items: any[], level: number = 0): MenuItem[] => {
+      return items.map((item: any) => {
+        const menuId = item._id || item.id;
+        const hasSubItems = item.subItems && item.subItems.length > 0;
+        
+        // Check if this should be a child item (multi-level)
+        const isDeepLevel = level > 0;
+        const hasNestedChildren = hasSubItems && item.subItems.some((sub: any) => 
+          sub.subItems && sub.subItems.length > 0
+        );
+
+        let transformedItem: MenuItem = {
+          id: menuId,
+          label: item.label,
+          icon: item.icon,
+          link: item.link || "/#",
+          isHeader: item.is_header,
+          badgeName: item.badge_name,
+          badgeColor: item.badge_color
+        };
+
+        if (hasSubItems) {
+          // Determine if this should use childItems (multi-level) or subItems (single level)
+          if (isDeepLevel || hasNestedChildren) {
+            // Use childItems for multi-level structure
+            transformedItem.isChildItem = true;
+            transformedItem.childItems = transformMenuLevel(item.subItems, level + 1);
+            transformedItem.stateVariables = !!menuStates[menuId];
+            transformedItem.click = (e: any) => {
+              e.preventDefault();
+              toggleMenuState(menuId);
+            };
+          } else {
+            // Use subItems for regular menu structure
+            transformedItem.subItems = transformMenuLevel(item.subItems, level + 1);
+            transformedItem.stateVariables = !!menuStates[menuId];
+            transformedItem.click = (e: any) => {
+              e.preventDefault();
+              toggleMenuState(menuId);
+            };
+          }
+        }
+
+        return transformedItem;
+      });
+    };
+
+    return transformMenuLevel(processedData);
   };
 
   // Initialize menu data
@@ -450,9 +505,12 @@ export const useMenuData = () => {
       // Update menu states for both dynamic and static menus
       const updateMenuStates = (items: MenuItem[]): MenuItem[] => {
         return items.map(item => {
+          let updatedItem = { ...item };
+
+          // Handle main menu items with subItems
           if (item.subItems && item.subItems.length > 0) {
-            return {
-              ...item,
+            updatedItem = {
+              ...updatedItem,
               stateVariables: !!menuStates[item.id!],
               subItems: updateMenuStates(item.subItems),
               // Ensure click handler exists for static menus
@@ -462,7 +520,22 @@ export const useMenuData = () => {
               })
             };
           }
-          return item;
+
+          // Handle child items with nested childItems (multi-level)
+          if (item.isChildItem && item.childItems && item.childItems.length > 0) {
+            updatedItem = {
+              ...updatedItem,
+              stateVariables: !!menuStates[item.id!],
+              childItems: updateMenuStates(item.childItems),
+              // Ensure click handler exists for child items
+              click: item.click || ((e: any) => {
+                e.preventDefault();
+                toggleMenuState(item.id!);
+              })
+            };
+          }
+
+          return updatedItem;
         });
       };
       
