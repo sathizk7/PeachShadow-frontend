@@ -175,8 +175,18 @@ const TwoColumnLayout = (props : any) => {
         }
     }, [props.layoutType, initMenu]);
 
+    // Force re-render when menuData changes (to pick up state updates)
+    useEffect(() => {
+        // This will cause the component to re-render when menu states change
+        // ensuring the second column reflects the latest expand/collapse states
+    }, [menuData]);
+
     const renderSecondColumn = () => {
-        if (!selectedMenuItem || !selectedMenuItem.subItems || selectedMenuItem.subItems.length === 0) {
+        // Get the current state of the selected menu item from menuData instead of stale selectedMenuItem
+        const currentSelectedMenuItem = selectedMenuItem ? 
+            menuData.find(item => item.id === selectedMenuItem.id) : null;
+            
+        if (!currentSelectedMenuItem || !currentSelectedMenuItem.subItems || currentSelectedMenuItem.subItems.length === 0) {
             return (
                 <div className="text-center p-4 text-muted" style={{ minHeight: '200px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                     <i className="ri-mouse-line fs-2 mb-2"></i>
@@ -217,7 +227,7 @@ const TwoColumnLayout = (props : any) => {
 
         return (
             <ul className="nav nav-sm flex-column">
-                {renderMenuItems(selectedMenuItem.subItems)}
+                {renderMenuItems(currentSelectedMenuItem.subItems)}
             </ul>
         );
     };
