@@ -137,20 +137,6 @@ const TwoColumnLayout = (props : any) => {
     });
     return (
         <React.Fragment>
-            {/* Development Menu Indicator */}
-            {process.env.NODE_ENV === 'development' && (
-                <div className="text-center py-2 bg-light border-bottom">
-                    {loading ? (
-                        <span className="text-warning small">Loading Menu...</span>
-                    ) : error ? (
-                        <span className="text-danger small">Menu Error: {error}</span>
-                    ) : (
-                        <span className={`small ${isUsingDynamic ? "text-success" : "text-info"}`}>
-                            {isUsingDynamic ? "🌐 Dynamic Menu" : "📁 Static Menu"}
-                        </span>
-                    )}
-                </div>
-            )}
             {isMenu === "twocolumn" ?
                 <div id="scrollbar">
                     <Container fluid>
@@ -159,6 +145,13 @@ const TwoColumnLayout = (props : any) => {
                                 <Link to="#" className="logo">
                                     <img src={logoSm} alt="" height="22" />
                                 </Link>
+                                {/* Development indicator - subtle */}
+                                {process.env.NODE_ENV === 'development' && (
+                                    <div className="text-center" style={{ fontSize: '0.5rem', color: '#6c757d', padding: '0.1rem 0' }}>
+                                        <i className={`${isUsingDynamic ? 'ri-database-line' : 'ri-file-text-line'} me-1`}></i>
+                                        {isUsingDynamic ? 'Dynamic' : 'Static'}
+                                    </div>
+                                )}
                                 {(menuData || []).map((item : any, key : number) => (
                                     <React.Fragment key={key}>
                                         {item.icon && (

@@ -121,22 +121,6 @@ const HorizontalLayout = (props : any) => {
 
     return (
         <React.Fragment>
-            {/* Development Menu Indicator */}
-            {process.env.NODE_ENV === 'development' && (
-                <li className="nav-item">
-                    <div className="nav-link text-muted small">
-                        {loading ? (
-                            <span className="text-warning">Loading Menu...</span>
-                        ) : error ? (
-                            <span className="text-danger">Menu Error: {error}</span>
-                        ) : (
-                            <span className={isUsingDynamic ? "text-success" : "text-info"}>
-                                {isUsingDynamic ? "🌐 Dynamic Menu" : "📁 Static Menu"}
-                            </span>
-                        )}
-                    </div>
-                </li>
-            )}
             {(menuItems || []).map((item  :any, key : number) => {
                 return (
                     <React.Fragment key={key}>
