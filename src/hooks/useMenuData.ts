@@ -460,6 +460,7 @@ export const useMenuData = () => {
           // Level 0 (main menu) uses subItems, Level 1+ uses childItems
           if (level > 0) {
             // Use childItems for nested levels (Level 1, 2, 3+)
+            console.log(`Level ${level}: "${item.label}" using childItems (${item.subItems.length} children)`);
             transformedItem.isChildItem = true;
             transformedItem.childItems = transformMenuLevel(item.subItems, level + 1);
             transformedItem.stateVariables = !!menuStates[menuId];
@@ -469,6 +470,7 @@ export const useMenuData = () => {
             };
           } else {
             // Use subItems for top-level menu items (Level 0)
+            console.log(`Level ${level}: "${item.label}" using subItems (${item.subItems.length} children)`);
             transformedItem.subItems = transformMenuLevel(item.subItems, level + 1);
             transformedItem.stateVariables = !!menuStates[menuId];
             transformedItem.click = (e: any) => {
