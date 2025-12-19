@@ -24,16 +24,6 @@ const TwoColumnLayout = (props : any) => {
     
     // Resize sidebar
     const [isMenu, setIsMenu] = useState("twocolumn");
-
-    // Initialize first menu item as selected when menuData changes
-    useEffect(() => {
-        if (menuData && menuData.length > 0 && !selectedMenuItem) {
-            const firstMenuWithSubItems = menuData.find(item => item.subItems && item.subItems.length > 0);
-            if (firstMenuWithSubItems) {
-                setSelectedMenuItem(firstMenuWithSubItems);
-            }
-        }
-    }, [menuData, selectedMenuItem]);
     
     const activateParentDropdown = useCallback((item : any) => {
         item.classList.add("active");
@@ -126,12 +116,19 @@ const TwoColumnLayout = (props : any) => {
 
     // Handle click on first column icons
     const handleFirstColumnClick = (item: any) => {
-        setSelectedMenuItem(item);
-        removeIconSidebarActive();
-        // Activate the clicked icon
-        const iconElement = document.querySelector(`[sub-items="${item.id}"]`);
-        if (iconElement) {
-            iconElement.classList.add("active");
+        // Toggle logic: if the same item is clicked, close the second column
+        if (selectedMenuItem?.id === item.id) {
+            setSelectedMenuItem(null);
+            removeIconSidebarActive();
+        } else {
+            // Different item clicked, show its sub-items
+            setSelectedMenuItem(item);
+            removeIconSidebarActive();
+            // Activate the clicked icon
+            const iconElement = document.querySelector(`[sub-items="${item.id}"]`);
+            if (iconElement) {
+                iconElement.classList.add("active");
+            }
         }
     };
 
@@ -155,9 +152,9 @@ const TwoColumnLayout = (props : any) => {
     const renderSecondColumn = () => {
         if (!selectedMenuItem || !selectedMenuItem.subItems || selectedMenuItem.subItems.length === 0) {
             return (
-                <div className="text-center p-4 text-muted">
-                    <i className="ri-menu-line fs-4 mb-2"></i>
-                    <p className="mb-0">Select a menu item from the left panel</p>
+                <div className="text-center p-4 text-muted" style={{ minHeight: '200px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                    <i className="ri-mouse-line fs-2 mb-2"></i>
+                    <p className="mb-0 small">Click on a menu icon to view options</p>
                 </div>
             );
         }
