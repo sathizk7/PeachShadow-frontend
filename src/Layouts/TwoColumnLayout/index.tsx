@@ -9,14 +9,15 @@ import logoSm from "../../assets/images/logo-sm.png";
 import { withTranslation } from "react-i18next";
 
 // Import Data
-import navdata from "../LayoutMenuData";
+import { useMenuData } from "../../hooks/useMenuData";
 import VerticalLayout from "../VerticalLayouts";
 
 //SimpleBar
 import SimpleBar from "simplebar-react";
 
 const TwoColumnLayout = (props : any) => {
-    const navData = navdata().props.children;
+    // Use the unified menu data hook instead of navdata directly
+    const { menuData, loading, error, isUsingDynamic } = useMenuData();
     const activateParentDropdown = useCallback((item : any) => {
         item.classList.add("active");
         let parentCollapseDiv = item.closest(".collapse.menu-dropdown");
@@ -136,6 +137,20 @@ const TwoColumnLayout = (props : any) => {
     });
     return (
         <React.Fragment>
+            {/* Development Menu Indicator */}
+            {process.env.NODE_ENV === 'development' && (
+                <div className="text-center py-2 bg-light border-bottom">
+                    {loading ? (
+                        <span className="text-warning small">Loading Menu...</span>
+                    ) : error ? (
+                        <span className="text-danger small">Menu Error: {error}</span>
+                    ) : (
+                        <span className={`small ${isUsingDynamic ? "text-success" : "text-info"}`}>
+                            {isUsingDynamic ? "🌐 Dynamic Menu" : "📁 Static Menu"}
+                        </span>
+                    )}
+                </div>
+            )}
             {isMenu === "twocolumn" ?
                 <div id="scrollbar">
                     <Container fluid>
@@ -144,7 +159,7 @@ const TwoColumnLayout = (props : any) => {
                                 <Link to="#" className="logo">
                                     <img src={logoSm} alt="" height="22" />
                                 </Link>
-                                {(navData || []).map((item : any, key : number) => (
+                                {(menuData || []).map((item : any, key : number) => (
                                     <React.Fragment key={key}>
                                         {item.icon && (
                                             item.subItems ? (
@@ -178,7 +193,7 @@ const TwoColumnLayout = (props : any) => {
                             </SimpleBar>
                         </div>
                         <SimpleBar id="navbar-nav" className="navbar-nav">
-                            {(navData || []).map((item : any, key : number) => (
+                            {(menuData || []).map((item : any, key : number) => (
                                 <React.Fragment key={key}>
                                     {item.subItems ? (
                                         <li className="nav-item">

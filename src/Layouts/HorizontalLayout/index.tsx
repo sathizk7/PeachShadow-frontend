@@ -5,31 +5,50 @@ import { Col, Collapse, Row } from 'reactstrap';
 import withRouter from '../../Components/Common/withRouter';
 
 // Import Data
-import navdata from "../LayoutMenuData";
+import { useMenuData } from '../../hooks/useMenuData';
 //i18n
 import { withTranslation } from "react-i18next";
 
 const HorizontalLayout = (props : any) => {
     const [isMoreMenu, setIsMoreMenu] = useState<boolean>(false);
-    const navData = navdata().props.children;
-    let menuItems = [];
+    
+    // Use the unified menu data hook instead of navdata directly
+    const { menuData, loading, error, isUsingDynamic } = useMenuData();
+    
+    let menuItems : any[] = [];
     let splitMenuItems : Array<any> = [];
     let menuSplitContainer = 6;
-    navData.forEach(function (value : any, key : number) {
+    
+    menuData.forEach(function (value : any, key : number) {
         if (value['isHeader']) {
             menuSplitContainer++;
         }
         if (key >= menuSplitContainer) {
-            let val = value;
-            val.childItems = value.subItems;
-            val.isChildItem = (value.subItems) ? true : false;
-            delete val.subItems;
+            let val = { ...value };
+            // Convert subItems to childItems for horizontal layout compatibility
+            if (val.subItems) {
+                val.childItems = val.subItems;
+                val.isChildItem = true;
+                delete val.subItems;
+            }
             splitMenuItems.push(val);
         } else {
             menuItems.push(value);
         }
     });
-    menuItems.push({ id: 'more', label: 'More', icon: 'ri-briefcase-2-line', link: "/#", stateVariables: isMoreMenu, subItems: splitMenuItems, click: function (e : any) { e.preventDefault(); setIsMoreMenu(!isMoreMenu); }, });
+    
+    menuItems.push({ 
+        id: 'more', 
+        label: 'More', 
+        icon: 'ri-briefcase-2-line', 
+        link: "/#", 
+        stateVariables: isMoreMenu, 
+        subItems: splitMenuItems, 
+        click: function (e : any) { 
+            e.preventDefault(); 
+            setIsMoreMenu(!isMoreMenu); 
+        }
+    });
 
     const path = props.router.location.pathname;
 
@@ -102,6 +121,22 @@ const HorizontalLayout = (props : any) => {
 
     return (
         <React.Fragment>
+            {/* Development Menu Indicator */}
+            {process.env.NODE_ENV === 'development' && (
+                <li className="nav-item">
+                    <div className="nav-link text-muted small">
+                        {loading ? (
+                            <span className="text-warning">Loading Menu...</span>
+                        ) : error ? (
+                            <span className="text-danger">Menu Error: {error}</span>
+                        ) : (
+                            <span className={isUsingDynamic ? "text-success" : "text-info"}>
+                                {isUsingDynamic ? "🌐 Dynamic Menu" : "📁 Static Menu"}
+                            </span>
+                        )}
+                    </div>
+                </li>
+            )}
             {(menuItems || []).map((item  :any, key : number) => {
                 return (
                     <React.Fragment key={key}>
