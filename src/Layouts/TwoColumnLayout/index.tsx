@@ -25,6 +25,15 @@ const TwoColumnLayout = (props : any) => {
     // Resize sidebar
     const [isMenu, setIsMenu] = useState("twocolumn");
     
+    // Initialize second column as collapsed (similar to hamburger behavior)
+    useEffect(() => {
+        if (props.layoutType === 'twocolumn') {
+            // Start with second column collapsed
+            document.body.classList.add('twocolumn-panel');
+            setSelectedMenuItem(null);
+        }
+    }, [props.layoutType]);
+    
     const activateParentDropdown = useCallback((item : any) => {
         item.classList.add("active");
         let parentCollapseDiv = item.closest(".collapse.menu-dropdown");
@@ -116,8 +125,12 @@ const TwoColumnLayout = (props : any) => {
 
     // Handle click on first column icons
     const handleFirstColumnClick = (item: any) => {
-        // If second column is currently closed (no selectedMenuItem), always open with clicked item
-        if (!selectedMenuItem) {
+        // Use CSS class approach like the hamburger menu
+        const hasPanel = document.body.classList.contains('twocolumn-panel');
+        
+        if (hasPanel) {
+            // Second column is currently hidden, show it with selected item
+            document.body.classList.remove('twocolumn-panel');
             setSelectedMenuItem(item);
             removeIconSidebarActive();
             // Activate the clicked icon
@@ -125,21 +138,48 @@ const TwoColumnLayout = (props : any) => {
             if (iconElement) {
                 iconElement.classList.add("active");
             }
-        } else if (selectedMenuItem.id === item.id) {
-            // Same item clicked when second column is open, close it
-            setSelectedMenuItem(null);
-            removeIconSidebarActive();
         } else {
-            // Different item clicked, switch to that menu's sub-items
-            setSelectedMenuItem(item);
-            removeIconSidebarActive();
-            // Activate the clicked icon
-            const iconElement = document.querySelector(`[sub-items="${item.id}"]`);
-            if (iconElement) {
-                iconElement.classList.add("active");
+            // Second column is visible
+            if (selectedMenuItem && selectedMenuItem.id === item.id) {
+                // Same item clicked, hide the second column
+                document.body.classList.add('twocolumn-panel');
+                setSelectedMenuItem(null);
+                removeIconSidebarActive();
+            } else {
+                // Different item clicked, switch to that menu's sub-items
+                setSelectedMenuItem(item);
+                removeIconSidebarActive();
+                // Activate the clicked icon
+                const iconElement = document.querySelector(`[sub-items="${item.id}"]`);
+                if (iconElement) {
+                    iconElement.classList.add("active");
+                }
             }
         }
     };
+
+    // Listen for hamburger button clicks and sync our state
+    useEffect(() => {
+        if (props.layoutType === 'twocolumn') {
+            const checkPanelState = () => {
+                const hasPanel = document.body.classList.contains('twocolumn-panel');
+                if (hasPanel && selectedMenuItem) {
+                    // If hamburger closed the panel, clear our selection
+                    setSelectedMenuItem(null);
+                    removeIconSidebarActive();
+                }
+            };
+            
+            // Use MutationObserver to watch for class changes on document.body
+            const observer = new MutationObserver(checkPanelState);
+            observer.observe(document.body, {
+                attributes: true,
+                attributeFilter: ['class']
+            });
+
+            return () => observer.disconnect();
+        }
+    }, [props.layoutType, selectedMenuItem]);
 
     useEffect(function setupListener() {
         if (props.layoutType === 'twocolumn') {
