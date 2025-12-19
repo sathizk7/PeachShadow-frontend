@@ -18,6 +18,23 @@ import SimpleBar from "simplebar-react";
 const TwoColumnLayout = (props : any) => {
     // Use the unified menu data hook instead of navdata directly
     const { menuData, loading, error, isUsingDynamic } = useMenuData();
+    
+    // State for selected menu item in first column
+    const [selectedMenuItem, setSelectedMenuItem] = useState<any>(null);
+    
+    // Resize sidebar
+    const [isMenu, setIsMenu] = useState("twocolumn");
+
+    // Initialize first menu item as selected when menuData changes
+    useEffect(() => {
+        if (menuData && menuData.length > 0 && !selectedMenuItem) {
+            const firstMenuWithSubItems = menuData.find(item => item.subItems && item.subItems.length > 0);
+            if (firstMenuWithSubItems) {
+                setSelectedMenuItem(firstMenuWithSubItems);
+            }
+        }
+    }, [menuData, selectedMenuItem]);
+    
     const activateParentDropdown = useCallback((item : any) => {
         item.classList.add("active");
         let parentCollapseDiv = item.closest(".collapse.menu-dropdown");
@@ -55,38 +72,20 @@ const TwoColumnLayout = (props : any) => {
         });
         if (matchingMenuItem) {
             activateParentDropdown(matchingMenuItem);
-        } else {
-            if (process.env.PUBLIC_URL) {
-                var id = pathName.replace(process.env.PUBLIC_URL, '');
-                id = id.replace("/", "");
-            } else {
-                id = pathName.replace("/", "");
-            }
-            if (id) document.body.classList.add('twocolumn-panel');
-            activateIconSidebarActive(id);
         }
     }, [path, activateParentDropdown]);
 
-    useEffect(() => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        initMenu();
-    }, [path, initMenu]);
-
-    function activateIconSidebarActive(id  :any) {
-        var menu = document.querySelector("#two-column-menu .simplebar-content-wrapper a[sub-items='" + id + "'].nav-icon");
-        if (menu !== null) {
-            menu.classList.add("active");
-        }
-    }
-
     const removeActivation = (items : any) => {
-        let activeItems = items.filter((x : any) => x.classList.contains("active"));
-        activeItems.forEach((item : any) => {
+        let actiItems = items.filter((x : any) => x.classList.contains("active"));
+
+        actiItems.forEach((item : any) => {
             if (item.classList.contains("menu-link")) {
                 if (!item.classList.contains("active")) {
                     item.setAttribute("aria-expanded", false);
                 }
-                item.nextElementSibling.classList.remove("show");
+                if (item.nextElementSibling) {
+                    item.nextElementSibling.classList.remove("show");
+                }
             }
             if (item.classList.contains("nav-link")) {
                 if (item.nextElementSibling) {
@@ -96,22 +95,22 @@ const TwoColumnLayout = (props : any) => {
             }
             item.classList.remove("active");
         });
+    };
+    
+    const activateIconSidebarActive = (id : any) => {
+        const menu = document.querySelector(`[sub-items="${id}"]`) as HTMLElement;
+        if (menu) {
+            menu.classList.add("active");
+        }
+    };
 
-        const ul = document.getElementById("two-column-menu") as HTMLElement;
-        const iconItems : any = ul.getElementsByTagName("a");
-        let itemsArray = [...iconItems];
-        let activeIconItems = itemsArray.filter((x) => x.classList.contains("active"));
-        activeIconItems.forEach((item) => {
-            item.classList.remove("active");
-            var id = item.getAttribute("sub-items");
-            var getId = document.getElementById(id) as HTMLElement;
-            if (getId)
-                getId.classList.remove("show");
+    const removeIconSidebarActive = () => {
+        const activeIcons = document.querySelectorAll(".twocolumn-iconview li");
+        activeIcons.forEach((icon) => {
+            icon.classList.remove("active");
         });
     };
 
-    // Resize sidebar
-    const [isMenu, setIsMenu] = useState("twocolumn");
     const windowResizeHover = () => {
         initMenu();
         var windowSize = document.documentElement.clientWidth;
@@ -125,6 +124,17 @@ const TwoColumnLayout = (props : any) => {
         }
     };
 
+    // Handle click on first column icons
+    const handleFirstColumnClick = (item: any) => {
+        setSelectedMenuItem(item);
+        removeIconSidebarActive();
+        // Activate the clicked icon
+        const iconElement = document.querySelector(`[sub-items="${item.id}"]`);
+        if (iconElement) {
+            iconElement.classList.add("active");
+        }
+    };
+
     useEffect(function setupListener() {
         if (props.layoutType === 'twocolumn') {
             window.addEventListener('resize', windowResizeHover);
@@ -134,13 +144,71 @@ const TwoColumnLayout = (props : any) => {
                 window.removeEventListener('resize', windowResizeHover);
             };
         }
-    });
+    }, [props.layoutType]);
+
+    useEffect(() => {
+        if (props.layoutType === 'twocolumn') {
+            initMenu();
+        }
+    }, [props.layoutType, initMenu]);
+
+    const renderSecondColumn = () => {
+        if (!selectedMenuItem || !selectedMenuItem.subItems || selectedMenuItem.subItems.length === 0) {
+            return (
+                <div className="text-center p-4 text-muted">
+                    <i className="ri-menu-line fs-4 mb-2"></i>
+                    <p className="mb-0">Select a menu item from the left panel</p>
+                </div>
+            );
+        }
+
+        return (
+            <ul className="nav nav-sm flex-column">
+                {selectedMenuItem.subItems.map((subItem: any, key: number) => (
+                    <li key={key} className="nav-item">
+                        <Link
+                            to={subItem.link ? subItem.link : "/#"}
+                            className="nav-link"
+                            onClick={subItem.click}
+                        >
+                            {props.t(subItem.label)}
+                            {subItem.badgeName && (
+                                <span className={`badge badge-pill bg-${subItem.badgeColor}`} data-key="t-new">
+                                    {subItem.badgeName}
+                                </span>
+                            )}
+                        </Link>
+                        {/* Handle child items (multi-level menus) */}
+                        {subItem.childItems && subItem.childItems.length > 0 && (
+                            <Collapse className="menu-dropdown" isOpen={subItem.stateVariables} id={subItem.id}>
+                                <ul className="nav nav-sm flex-column">
+                                    {subItem.childItems.map((childItem: any, childKey: number) => (
+                                        <li key={childKey} className="nav-item">
+                                            <Link
+                                                to={childItem.link ? childItem.link : "/#"}
+                                                className="nav-link"
+                                                onClick={childItem.click}
+                                            >
+                                                {props.t(childItem.label)}
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </Collapse>
+                        )}
+                    </li>
+                ))}
+            </ul>
+        );
+    };
+
     return (
         <React.Fragment>
-            {isMenu === "twocolumn" ?
+            {isMenu === "twocolumn" ? (
                 <div id="scrollbar">
                     <Container fluid>
                         <div id="two-column-menu">
+                            {/* First Column - Icons */}
                             <SimpleBar className="twocolumn-iconview">
                                 <Link to="#" className="logo">
                                     <img src={logoSm} alt="" height="22" />
@@ -152,127 +220,34 @@ const TwoColumnLayout = (props : any) => {
                                         {isUsingDynamic ? 'Dynamic' : 'Static'}
                                     </div>
                                 )}
-                                {(menuData || []).map((item : any, key : number) => (
+                                {(menuData || []).map((item: any, key: number) => (
                                     <React.Fragment key={key}>
-                                        {item.icon && (
-                                            item.subItems ? (
-                                                <li>
-                                                    <Link
-                                                        onClick={item.click}
-                                                        to="#"
-                                                        sub-items={item.id}
-                                                        className="nav-icon"
-                                                        data-bs-toggle="collapse">
-                                                        <i className={item.icon}></i>
-                                                    </Link>
-                                                </li>
-
-                                            ) : (
-                                                <>
-                                                    <Link
-                                                        onClick={item.click}
-                                                        to={item.link ? item.link : "/#"}
-                                                        sub-items={item.id}
-                                                        className="nav-icon"
-                                                        data-bs-toggle="collapse">
-                                                        <i className={item.icon}></i>
-                                                    </Link>
-                                                </>
-                                            )
+                                        {item.icon && item.subItems && item.subItems.length > 0 && (
+                                            <li>
+                                                <Link
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        handleFirstColumnClick(item);
+                                                    }}
+                                                    to="#"
+                                                    sub-items={item.id}
+                                                    className={`nav-icon ${selectedMenuItem?.id === item.id ? 'active' : ''}`}
+                                                    data-bs-toggle="collapse">
+                                                    <i className={item.icon}></i>
+                                                </Link>
+                                            </li>
                                         )}
                                     </React.Fragment>
                                 ))}
-
                             </SimpleBar>
                         </div>
+                        {/* Second Column - Menu Details */}
                         <SimpleBar id="navbar-nav" className="navbar-nav">
-                            {(menuData || []).map((item : any, key : number) => (
-                                <React.Fragment key={key}>
-                                    {item.subItems ? (
-                                        <li className="nav-item">
-                                            <Collapse
-                                                className="menu-dropdown"
-                                                isOpen={item.stateVariables}
-                                                id={item.id}>
-                                                <ul className="nav nav-sm flex-column test">
-                                                    {/* subItms  */}
-                                                    {item.subItems && ((item.subItems || []).map((subItem : any, key : number) => (
-                                                        <React.Fragment key={key}>
-                                                            {!subItem.isChildItem ? (
-                                                                <li className="nav-item">
-                                                                    <Link
-                                                                        to={subItem.link ? subItem.link : "/#"}
-                                                                        className="nav-link"
-                                                                    >
-                                                                        {props.t(subItem.label)}
-                                                                        {subItem.badgeName ?
-                                                                            <span className={"badge badge-pill bg-" + subItem.badgeColor} data-key="t-new">{subItem.badgeName}</span>
-                                                                            : null}
-                                                                    </Link>
-                                                                </li>
-                                                            ) : (
-                                                                <li className="nav-item">
-                                                                    <Link
-                                                                        onClick={subItem.click}
-                                                                        className="nav-link"
-                                                                        to="/#"
-                                                                        data-bs-toggle="collapse"
-                                                                    > {props.t(subItem.label)}
-                                                                        {subItem.badgeName ?
-                                                                            <span className={"badge badge-pill bg-" + subItem.badgeColor} data-key="t-new">{subItem.badgeName}</span>
-                                                                            : null}
-                                                                    </Link>
-                                                                    <Collapse className="menu-dropdown" isOpen={subItem.stateVariables} id={item.id}>
-                                                                        <ul className="nav nav-sm flex-column">
-                                                                            {/* child subItms  */}
-                                                                            {subItem.childItems && (
-                                                                                (subItem.childItems || []).map((childItem : any, key : number) => (
-                                                                                    <li className="nav-item" key={key}>
-                                                                                        <Link
-                                                                                            to={childItem.link ? childItem.link : "/#"}
-                                                                                            onClick={childItem.click}
-                                                                                            className="nav-link" >
-                                                                                            {props.t(childItem.label)}
-
-                                                                                        </Link>
-                                                                                        <Collapse className="menu-dropdown" isOpen={childItem.stateVariables} id={item.id}>
-                                                                                            <ul className="nav nav-sm flex-column">
-                                                                                                {/* child subChildItems  */}
-                                                                                                {childItem.isChildItem && (
-                                                                                                    (childItem.childItems || []).map((childItem : any, key : number) => (
-                                                                                                        <li className="nav-item" key={key} >
-                                                                                                            <Link
-                                                                                                                to={childItem.link ? childItem.link : "/#"}
-                                                                                                                className="nav-link">
-                                                                                                                {props.t(childItem.label)}
-                                                                                                            </Link>
-                                                                                                        </li>
-                                                                                                    ))
-                                                                                                )}
-                                                                                            </ul>
-                                                                                        </Collapse>
-                                                                                    </li>
-                                                                                ))
-                                                                            )}
-                                                                        </ul>
-                                                                    </Collapse>
-                                                                </li>
-                                                            )}
-                                                        </React.Fragment>
-                                                    ))
-                                                    )}
-                                                </ul>
-
-                                            </Collapse>
-                                        </li>
-                                    ) : null
-                                    }
-                                </React.Fragment>
-                            ))}
+                            {renderSecondColumn()}
                         </SimpleBar>
                     </Container>
                 </div>
-                :
+            ) : (
                 <SimpleBar id="scrollbar" className="h-100">
                     <Container fluid>
                         <div id="two-column-menu"></div>
@@ -281,14 +256,15 @@ const TwoColumnLayout = (props : any) => {
                         </ul>
                     </Container>
                 </SimpleBar>
-            }
-        </React.Fragment >
+            )}
+        </React.Fragment>
     );
 };
 
 TwoColumnLayout.propTypes = {
     location: PropTypes.object,
     t: PropTypes.any,
+    layoutType: PropTypes.string
 };
 
 export default withRouter(withTranslation()(TwoColumnLayout));
