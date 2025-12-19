@@ -72,6 +72,9 @@ import JobReducer from "./jobs/reducer";
 // API Key
 import APIKeyReducer from "./apiKey/reducer";
 
+// Dynamic Menu
+import MenuReducer from "./menu/reducer";
+
 const rootReducer = combineReducers({
     Layout: LayoutReducer,
     Login: LoginReducer,
@@ -99,7 +102,8 @@ const rootReducer = combineReducers({
     FileManager: FileManagerReducer,
     Todos: TodosReducer,
     Jobs: JobReducer,
-    APIKey: APIKeyReducer
+    APIKey: APIKeyReducer,
+    Menu: MenuReducer
 });
 
 export default rootReducer;

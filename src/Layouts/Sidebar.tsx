@@ -12,8 +12,11 @@ import VerticalLayout from "./VerticalLayouts";
 import TwoColumnLayout from "./TwoColumnLayout";
 import { Container,  DropdownMenu, DropdownToggle, UncontrolledDropdown } from "reactstrap";
 import HorizontalLayout from "./HorizontalLayout";
+import { useMenuData } from "../hooks/useMenuData";
 
 const Sidebar = ({ layoutType }: any) => {
+  // Get menu data for development indicators
+  const { loading, error, isUsingDynamic } = useMenuData();
 
   useEffect(() => {
     var verticalOverlay = document.getElementsByClassName("vertical-overlay");
@@ -92,6 +95,22 @@ const Sidebar = ({ layoutType }: any) => {
         {layoutType === "horizontal" ? (
           <div id="scrollbar">
             <Container fluid>
+              {/* Development Menu Indicator for Horizontal Layout */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="text-center py-1 bg-light border-bottom">
+                  <small className="text-muted">
+                    {loading ? (
+                      <span className="text-warning">Loading Menu...</span>
+                    ) : error ? (
+                      <span className="text-danger">Menu Error: {error}</span>
+                    ) : (
+                      <span className={isUsingDynamic ? "text-success" : "text-info"}>
+                        {isUsingDynamic ? "🌐 Dynamic Menu" : "📁 Static Menu"} (Horizontal Layout)
+                      </span>
+                    )}
+                  </small>
+                </div>
+              )}
               <div id="two-column-menu"></div>
               <ul className="navbar-nav" id="navbar-nav">
                 <HorizontalLayout />

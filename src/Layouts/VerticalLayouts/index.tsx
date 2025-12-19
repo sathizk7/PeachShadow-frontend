@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Collapse } from 'reactstrap';
 // Import Data
 import navdata from "../LayoutMenuData";
+import useMenuData from "../../hooks/useMenuData";
 //i18n
 import { withTranslation } from "react-i18next";
 import withRouter from "../../Components/Common/withRouter";
@@ -11,7 +12,9 @@ import { useSelector } from "react-redux";
 import { createSelector } from 'reselect';
 
 const VerticalLayout = (props : any) => {
-    const navData = navdata().props.children;
+    // Use the menu data hook
+    const { menuData, loading, error, isUsingDynamic } = useMenuData();
+    
     const path = props.router.location.pathname;
 
     /*
@@ -148,8 +151,26 @@ const VerticalLayout = (props : any) => {
 
     return (
         <React.Fragment>
-            {/* menu Items */}
-            {(navData || []).map((item : any, key : number) => {
+            {/* Development indicator */}
+            {process.env.NODE_ENV === 'development' && (
+                <div className="text-center" style={{ fontSize: '0.6rem', color: '#6c757d', padding: '0.15rem 0' }}>
+                    <i className={`${isUsingDynamic ? 'ri-database-line' : 'ri-file-text-line'} me-1`}></i>
+                    {isUsingDynamic ? 'Dynamic Menu' : 'Static Menu'}
+                    {error && ' (Error - using fallback)'}
+                </div>
+            )}
+            
+            {/* Loading indicator */}
+            {loading && (
+                <div className="text-center p-2">
+                    <div className="spinner-border spinner-border-sm" role="status">
+                        <span className="visually-hidden">Loading menu...</span>
+                    </div>
+                </div>
+            )}
+            
+            {/* Menu Items */}
+            {!loading && (menuData || []).map((item : any, key : number) => {
                 return (
                     <React.Fragment key={key}>
                         {/* Main Header */}

@@ -5,31 +5,50 @@ import { Col, Collapse, Row } from 'reactstrap';
 import withRouter from '../../Components/Common/withRouter';
 
 // Import Data
-import navdata from "../LayoutMenuData";
+import { useMenuData } from '../../hooks/useMenuData';
 //i18n
 import { withTranslation } from "react-i18next";
 
 const HorizontalLayout = (props : any) => {
     const [isMoreMenu, setIsMoreMenu] = useState<boolean>(false);
-    const navData = navdata().props.children;
-    let menuItems = [];
+    
+    // Use the unified menu data hook instead of navdata directly
+    const { menuData, loading, error, isUsingDynamic } = useMenuData();
+    
+    let menuItems : any[] = [];
     let splitMenuItems : Array<any> = [];
     let menuSplitContainer = 6;
-    navData.forEach(function (value : any, key : number) {
+    
+    menuData.forEach(function (value : any, key : number) {
         if (value['isHeader']) {
             menuSplitContainer++;
         }
         if (key >= menuSplitContainer) {
-            let val = value;
-            val.childItems = value.subItems;
-            val.isChildItem = (value.subItems) ? true : false;
-            delete val.subItems;
+            let val = { ...value };
+            // Convert subItems to childItems for horizontal layout compatibility
+            if (val.subItems) {
+                val.childItems = val.subItems;
+                val.isChildItem = true;
+                delete val.subItems;
+            }
             splitMenuItems.push(val);
         } else {
             menuItems.push(value);
         }
     });
-    menuItems.push({ id: 'more', label: 'More', icon: 'ri-briefcase-2-line', link: "/#", stateVariables: isMoreMenu, subItems: splitMenuItems, click: function (e : any) { e.preventDefault(); setIsMoreMenu(!isMoreMenu); }, });
+    
+    menuItems.push({ 
+        id: 'more', 
+        label: 'More', 
+        icon: 'ri-briefcase-2-line', 
+        link: "/#", 
+        stateVariables: isMoreMenu, 
+        subItems: splitMenuItems, 
+        click: function (e : any) { 
+            e.preventDefault(); 
+            setIsMoreMenu(!isMoreMenu); 
+        }
+    });
 
     const path = props.router.location.pathname;
 

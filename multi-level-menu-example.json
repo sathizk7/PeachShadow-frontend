@@ -1,0 +1,89 @@
+{
+  "success": true,
+  "message": "Multi-level menu structure example for backend implementation",
+  "data": [
+    {
+      "_id": "multilevel_menu_id",
+      "parent_id": null,
+      "label": "Multi Level",
+      "icon": "ri-share-line",
+      "link": "/#",
+      "sort_order": 99,
+      "is_active": true,
+      "is_header": false,
+      "badge_name": null,
+      "badge_color": null,
+      "admin_only": false,
+      "subItems": [
+        {
+          "_id": "level1_1_id",
+          "parent_id": "multilevel_menu_id",
+          "label": "Level 1.1",
+          "icon": null,
+          "link": "/#",
+          "sort_order": 1,
+          "is_active": true,
+          "is_header": false,
+          "subItems": []
+        },
+        {
+          "_id": "level1_2_id", 
+          "parent_id": "multilevel_menu_id",
+          "label": "Level 1.2",
+          "icon": null,
+          "link": "/#",
+          "sort_order": 2,
+          "is_active": true,
+          "is_header": false,
+          "subItems": [
+            {
+              "_id": "level2_1_id",
+              "parent_id": "level1_2_id",
+              "label": "Level 2.1",
+              "icon": null,
+              "link": "/#",
+              "sort_order": 1,
+              "is_active": true,
+              "is_header": false,
+              "subItems": []
+            },
+            {
+              "_id": "level2_2_id",
+              "parent_id": "level1_2_id", 
+              "label": "Level 2.2",
+              "icon": null,
+              "link": "/#",
+              "sort_order": 2,
+              "is_active": true,
+              "is_header": false,
+              "subItems": [
+                {
+                  "_id": "level3_1_id",
+                  "parent_id": "level2_2_id",
+                  "label": "Level 3.1",
+                  "icon": null,
+                  "link": "/#",
+                  "sort_order": 1,
+                  "is_active": true,
+                  "is_header": false,
+                  "subItems": []
+                },
+                {
+                  "_id": "level3_2_id",
+                  "parent_id": "level2_2_id",
+                  "label": "Level 3.2", 
+                  "icon": null,
+                  "link": "/#",
+                  "sort_order": 2,
+                  "is_active": true,
+                  "is_header": false,
+                  "subItems": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
