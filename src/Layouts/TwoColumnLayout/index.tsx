@@ -25,11 +25,11 @@ const TwoColumnLayout = (props : any) => {
     // Resize sidebar
     const [isMenu, setIsMenu] = useState("twocolumn");
     
-    // Initialize second column as collapsed (similar to hamburger behavior)
+    // Initialize component state based on current CSS state
     useEffect(() => {
         if (props.layoutType === 'twocolumn') {
-            // Start with second column collapsed
-            document.body.classList.add('twocolumn-panel');
+            // Don't force the twocolumn-panel class - let hamburger button control it
+            // Just initialize our selectedMenuItem as null since no icon has been clicked yet
             setSelectedMenuItem(null);
         }
     }, [props.layoutType]);
@@ -157,29 +157,6 @@ const TwoColumnLayout = (props : any) => {
             }
         }
     };
-
-    // Listen for hamburger button clicks and sync our state
-    useEffect(() => {
-        if (props.layoutType === 'twocolumn') {
-            const checkPanelState = () => {
-                const hasPanel = document.body.classList.contains('twocolumn-panel');
-                if (hasPanel && selectedMenuItem) {
-                    // If hamburger closed the panel, clear our selection
-                    setSelectedMenuItem(null);
-                    removeIconSidebarActive();
-                }
-            };
-            
-            // Use MutationObserver to watch for class changes on document.body
-            const observer = new MutationObserver(checkPanelState);
-            observer.observe(document.body, {
-                attributes: true,
-                attributeFilter: ['class']
-            });
-
-            return () => observer.disconnect();
-        }
-    }, [props.layoutType, selectedMenuItem]);
 
     useEffect(function setupListener() {
         if (props.layoutType === 'twocolumn') {
