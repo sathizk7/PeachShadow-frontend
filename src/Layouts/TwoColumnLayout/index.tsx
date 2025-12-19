@@ -185,10 +185,11 @@ const TwoColumnLayout = (props : any) => {
             );
         }
 
-        return (
-            <ul className="nav nav-sm flex-column">
-                {selectedMenuItem.subItems.map((subItem: any, key: number) => (
-                    <li key={key} className="nav-item">
+        // Recursive function to render menu items at any level
+        const renderMenuItems = (items: any[], level: number = 0) => {
+            return items.map((subItem: any, key: number) => (
+                <React.Fragment key={key}>
+                    <li className="nav-item">
                         <Link
                             to={subItem.link ? subItem.link : "/#"}
                             className="nav-link"
@@ -201,26 +202,22 @@ const TwoColumnLayout = (props : any) => {
                                 </span>
                             )}
                         </Link>
-                        {/* Handle child items (multi-level menus) */}
-                        {subItem.childItems && subItem.childItems.length > 0 && (
-                            <Collapse className="menu-dropdown" isOpen={subItem.stateVariables} id={subItem.id}>
+                        {/* Handle child items (multi-level menus) - Use childItems for nested levels */}
+                        {subItem.isChildItem && subItem.childItems && subItem.childItems.length > 0 && (
+                            <Collapse className="menu-dropdown" isOpen={subItem.stateVariables} id={`collapse-${subItem.id}`}>
                                 <ul className="nav nav-sm flex-column">
-                                    {subItem.childItems.map((childItem: any, childKey: number) => (
-                                        <li key={childKey} className="nav-item">
-                                            <Link
-                                                to={childItem.link ? childItem.link : "/#"}
-                                                className="nav-link"
-                                                onClick={childItem.click}
-                                            >
-                                                {props.t(childItem.label)}
-                                            </Link>
-                                        </li>
-                                    ))}
+                                    {renderMenuItems(subItem.childItems, level + 1)}
                                 </ul>
                             </Collapse>
                         )}
                     </li>
-                ))}
+                </React.Fragment>
+            ));
+        };
+
+        return (
+            <ul className="nav nav-sm flex-column">
+                {renderMenuItems(selectedMenuItem.subItems)}
             </ul>
         );
     };
