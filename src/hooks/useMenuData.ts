@@ -444,12 +444,6 @@ export const useMenuData = () => {
       return items.map((item: any) => {
         const menuId = item._id || item.id;
         const hasSubItems = item.subItems && item.subItems.length > 0;
-        
-        // Check if this should be a child item (multi-level)
-        const isDeepLevel = level > 0;
-        const hasNestedChildren = hasSubItems && item.subItems.some((sub: any) => 
-          sub.subItems && sub.subItems.length > 0
-        );
 
         let transformedItem: MenuItem = {
           id: menuId,
@@ -463,8 +457,9 @@ export const useMenuData = () => {
 
         if (hasSubItems) {
           // Determine if this should use childItems (multi-level) or subItems (single level)
-          if (isDeepLevel || hasNestedChildren) {
-            // Use childItems for multi-level structure
+          // Level 0 (main menu) uses subItems, Level 1+ uses childItems
+          if (level > 0) {
+            // Use childItems for nested levels (Level 1, 2, 3+)
             transformedItem.isChildItem = true;
             transformedItem.childItems = transformMenuLevel(item.subItems, level + 1);
             transformedItem.stateVariables = !!menuStates[menuId];
@@ -473,7 +468,7 @@ export const useMenuData = () => {
               toggleMenuState(menuId);
             };
           } else {
-            // Use subItems for regular menu structure
+            // Use subItems for top-level menu items (Level 0)
             transformedItem.subItems = transformMenuLevel(item.subItems, level + 1);
             transformedItem.stateVariables = !!menuStates[menuId];
             transformedItem.click = (e: any) => {
