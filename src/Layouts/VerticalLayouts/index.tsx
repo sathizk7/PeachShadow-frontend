@@ -181,9 +181,10 @@ const VerticalLayout = (props : any) => {
                                     <li className="nav-item">
                                         <Link
                                             onClick={item.click}
-                                            className="nav-link menu-link"
+                                            className={`nav-link menu-link ${item.stateVariables ? 'active' : ''}`}
                                             to={item.link ? item.link : "/#"}
                                             data-bs-toggle="collapse"
+                                            aria-expanded={item.stateVariables}
                                         >
                                             <i className={item.icon}></i>
                                             <span data-key="t-apps">{props.t(item.label)}</span>
@@ -215,9 +216,10 @@ const VerticalLayout = (props : any) => {
                                                             <li className="nav-item">
                                                                 <Link
                                                                     onClick={subItem.click}
-                                                                    className="nav-link"
+                                                                    className={`nav-link ${subItem.stateVariables ? 'active' : ''}`}
                                                                     to="/#"
                                                                     data-bs-toggle="collapse"
+                                                                    aria-expanded={subItem.stateVariables}
                                                                 >
                                                                     {props.t(subItem.label)}
                                                                     {subItem.badgeName ?
@@ -239,7 +241,7 @@ const VerticalLayout = (props : any) => {
                                                                                             </Link>
                                                                                         </li>
                                                                                         : <li className="nav-item">
-                                                                                            <Link to="/#" className="nav-link" onClick={childItem.click} data-bs-toggle="collapse">
+                                                                                            <Link to="/#" className={`nav-link ${childItem.stateVariables ? 'active' : ''}`} onClick={childItem.click} data-bs-toggle="collapse" aria-expanded={childItem.stateVariables}>
                                                                                                 {props.t(childItem.label)}
                                                                                             </Link>
                                                                                             <Collapse className="menu-dropdown" isOpen={childItem.stateVariables} id="sidebaremailTemplates">

@@ -10,13 +10,17 @@
     }
   ],
   "routes": [
-    {
-      "src": "/static/(.*)",
-      "dest": "/static/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+    { "src": "/static/(.*)", "dest": "/static/$1" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ],
+  "build": {
+    "env": {
+      "NODE_OPTIONS": "--max-old-space-size=4096",
+      "REACT_APP_DEFAULTAUTH": "backend",
+      "REACT_APP_API_URL": "https://peach-shadow-backend.vercel.app",
+      "REACT_APP_USE_DYNAMIC_MENU": "true",
+      "REACT_APP_FALLBACK_TO_STATIC": "true",
+      "CI": "false"
     }
-  ]
+  }
 }

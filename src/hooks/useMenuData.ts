@@ -32,12 +32,27 @@ export const useMenuData = () => {
 
   const { USE_DYNAMIC_MENU, FALLBACK_TO_STATIC } = config.menu;
 
-  // Function to toggle menu state
+  // Function to toggle menu state (simple toggle)
   const toggleMenuState = (menuId: string) => {
     setMenuStates(prev => ({
       ...prev,
       [menuId]: !prev[menuId]
     }));
+  };
+
+  // Function to toggle top-level menus exclusively
+  // When a top-level menu is opened, close all others.
+  // Clicking an already open top-level menu will close all.
+  const toggleMenuStateExclusiveTop = (menuId: string) => {
+    setMenuStates(prev => {
+      const currentlyOpen = !!prev[menuId];
+      if (currentlyOpen) {
+        // Close all menus
+        return {};
+      }
+      // Open only this top-level menu, close others
+      return { [menuId]: true };
+    });
   };
 
   // Load static menu data
@@ -58,7 +73,7 @@ export const useMenuData = () => {
           stateVariables: false,
           click: (e: any) => {
             e.preventDefault();
-            toggleMenuState("dashboard");
+            toggleMenuStateExclusiveTop("dashboard");
           },
           subItems: [
             { id: "analytics", label: "Analytics", link: "/dashboard-analytics" },
@@ -79,7 +94,7 @@ export const useMenuData = () => {
           stateVariables: false,
           click: (e: any) => {
             e.preventDefault();
-            toggleMenuState("apps");
+            toggleMenuStateExclusiveTop("apps");
           },
           subItems: [
             { id: "calendar", label: "Calendar", link: "/apps-calendar" },
@@ -111,7 +126,7 @@ export const useMenuData = () => {
           stateVariables: false,
           click: (e: any) => {
             e.preventDefault();
-            toggleMenuState("authentication");
+            toggleMenuStateExclusiveTop("authentication");
           },
           subItems: [
             { id: "signIn", label: "Sign In", link: "/auth-signin-basic" },
@@ -134,7 +149,7 @@ export const useMenuData = () => {
           stateVariables: false,
           click: (e: any) => {
             e.preventDefault();
-            toggleMenuState("pages");
+            toggleMenuStateExclusiveTop("pages");
           },
           subItems: [
             { id: "starter", label: "Starter", link: "/pages-starter" },
@@ -158,7 +173,7 @@ export const useMenuData = () => {
           stateVariables: false,
           click: (e: any) => {
             e.preventDefault();
-            toggleMenuState("landing");
+            toggleMenuStateExclusiveTop("landing");
           },
           subItems: [
             { id: "onePage", label: "One Page", link: "/landing" },
@@ -179,7 +194,7 @@ export const useMenuData = () => {
           stateVariables: false,
           click: (e: any) => {
             e.preventDefault();
-            toggleMenuState("baseUi");
+            toggleMenuStateExclusiveTop("baseUi");
           },
           subItems: [
             { id: "alerts", label: "Alerts", link: "/ui-alerts" },
@@ -215,7 +230,7 @@ export const useMenuData = () => {
           stateVariables: false,
           click: (e: any) => {
             e.preventDefault();
-            toggleMenuState("advanceUi");
+            toggleMenuStateExclusiveTop("advanceUi");
           },
           subItems: [
             { id: "sweetAlerts", label: "Sweet Alerts", link: "/ui-sweet-alerts" },
@@ -243,7 +258,7 @@ export const useMenuData = () => {
           stateVariables: false,
           click: (e: any) => {
             e.preventDefault();
-            toggleMenuState("forms");
+            toggleMenuStateExclusiveTop("forms");
           },
           subItems: [
             { id: "basicElements", label: "Basic Elements", link: "/forms-elements" },
@@ -269,7 +284,7 @@ export const useMenuData = () => {
           stateVariables: false,
           click: (e: any) => {
             e.preventDefault();
-            toggleMenuState("tables");
+            toggleMenuStateExclusiveTop("tables");
           },
           subItems: [
             { id: "basicTables", label: "Basic Tables", link: "/tables-basic" },
@@ -286,7 +301,7 @@ export const useMenuData = () => {
           stateVariables: false,
           click: (e: any) => {
             e.preventDefault();
-            toggleMenuState("charts");
+            toggleMenuStateExclusiveTop("charts");
           },
           subItems: [
             { id: "apexcharts", label: "Apexcharts", link: "/charts-apex" },
@@ -302,7 +317,7 @@ export const useMenuData = () => {
           stateVariables: false,
           click: (e: any) => {
             e.preventDefault();
-            toggleMenuState("icons");
+            toggleMenuStateExclusiveTop("icons");
           },
           subItems: [
             { id: "remix", label: "Remix Icons", link: "/icons-remix" },
@@ -321,7 +336,7 @@ export const useMenuData = () => {
           stateVariables: false,
           click: (e: any) => {
             e.preventDefault();
-            toggleMenuState("maps");
+            toggleMenuStateExclusiveTop("maps");
           },
           subItems: [
             { id: "google", label: "Google", link: "/maps-google" },
@@ -337,7 +352,7 @@ export const useMenuData = () => {
           stateVariables: false,
           click: (e: any) => {
             e.preventDefault();
-            toggleMenuState("multilevel");
+            toggleMenuStateExclusiveTop("multilevel");
           },
           subItems: [
             { id: "level1.1", label: "Level 1.1", link: "/#" },
@@ -473,7 +488,7 @@ export const useMenuData = () => {
             transformedItem.stateVariables = !!menuStates[menuId];
             transformedItem.click = (e: any) => {
               e.preventDefault();
-              toggleMenuState(menuId);
+              toggleMenuStateExclusiveTop(menuId);
             };
           }
         }
